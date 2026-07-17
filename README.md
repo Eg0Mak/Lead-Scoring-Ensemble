@@ -26,7 +26,6 @@
 
 $$AP_{d} = AP({(y_i, s_i): assignment date_i = d})$$
 
-Итоговая метрика - среднее значение по дням: <br>
 $$DailyAP = \frac{1}{|D|}\sum_{d \in D}AP_d$$
 
 
