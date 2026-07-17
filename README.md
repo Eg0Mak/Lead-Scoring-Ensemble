@@ -37,9 +37,9 @@ $$DailyAP = \frac{1}{|D|}\sum_{d \in D}AP_d$$
 
 | | |
 |---|---:|
-| CV Daily AP (4 фолда, time-based) | **0.6690 ± 0.0374** |
-| Public Daily AP | **0.708** |
-| Public Average Precision | 0.710 |
+| CV Daily AP (4 фолда, time-based) | **0.6861 ± 0.0349** |
+| Public Daily AP | **0.72317** |
+| Public Average Precision | 0.72351 |
 
 Локальная кросс-валидация откалибрована реалистично: разброс между CV и public-скором на разных прогонах укладывается в одно стандартное отклонение CV — то есть оценка не переобучена под шум конкретных 4 фолдов.
 
@@ -57,7 +57,7 @@ train.csv / test.csv / events.csv
    2. Feature engineering ─────────► агрегаты из events.csv (окна, recency, last_ctx_seq/
         │                             last_src_slot) + бизнес-фичи (ratio, trend, interaction)
         ▼
-   3. Отбор признаков ─────────────► 214 → 171, порог по CatBoost feature importance
+   3. Отбор признаков ─────────────► 229 → 188, порог по CatBoost feature importance
         │
         ▼
    4. Валидация ───────────────────► TimeSeriesSplit по датам (4 фолда, expanding window),
