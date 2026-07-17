@@ -6,6 +6,8 @@
 
 [![Python](https://img.shields.io/badge/Python-3.12-3776AB?logo=python&logoColor=white)](https://www.python.org/)
 [![CatBoost](https://img.shields.io/badge/CatBoost-ML-00A2FF)](https://catboost.ai/)
+[![LightGBM](https://img.shields.io/badge/LightGBM-ML-2C9F2C)](https://lightgbm.readthedocs.io/)
+[![XGBoost](https://img.shields.io/badge/XGBoost-ML-7A4DFF)](https://xgboost.readthedocs.io/)
 [![Optuna](https://img.shields.io/badge/Optuna-Hyperopt-2C3E50)](https://optuna.org/)
 [![Pandas](https://img.shields.io/badge/Pandas-Data-150458)](https://pandas.pydata.org/)
 
@@ -19,7 +21,9 @@
 
 ## О задаче
 
-Задача — оценить вероятность успешного целевого действия в течение 5 дней после назначения обращения. Модель используется для ранжирования: более перспективные обращения должны получать более высокий `score`.
+Есть поток обращений, которые попадают в обработку операторам или партнерам. Для каждого обращения нужно заранее оценить вероятность успешного целевого действия в ближайшие 5 дней после назначения.
+
+Результат модели используется для ранжирования: более перспективные обращения должны получать более высокий score.
 
 **Основная метрика** — **Daily Average Precision** (усредненный AP по дням назначения): 
 
