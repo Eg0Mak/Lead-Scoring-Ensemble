@@ -2,75 +2,206 @@
 
 # Приоритизация обращений
 
-**Решение тестового задания Avito**
+### Ранжирование лидов по вероятности успешного целевого действия
+
+**Тестовое задание Avito: скоринг обращений для операторов и партнёров**
 
 [![Python](https://img.shields.io/badge/Python-3.12-3776AB?logo=python&logoColor=white)](https://www.python.org/)
-[![CatBoost](https://img.shields.io/badge/CatBoost-ML-00A2FF)](https://catboost.ai/)
-[![LightGBM](https://img.shields.io/badge/LightGBM-ML-2C9F2C)](https://lightgbm.readthedocs.io/)
-[![XGBoost](https://img.shields.io/badge/XGBoost-ML-7A4DFF)](https://xgboost.readthedocs.io/)
-[![Optuna](https://img.shields.io/badge/Optuna-Hyperopt-2C3E50)](https://optuna.org/)
-[![Pandas](https://img.shields.io/badge/Pandas-Data-150458)](https://pandas.pydata.org/)
+[![CatBoost](https://img.shields.io/badge/CatBoost-Gradient_Boosting-FFCC00)](https://catboost.ai/)
+[![LightGBM](https://img.shields.io/badge/LightGBM-Gradient_Boosting-02569B)](https://lightgbm.readthedocs.io/)
+[![XGBoost](https://img.shields.io/badge/XGBoost-Gradient_Boosting-EB0028)](https://xgboost.readthedocs.io/)
+[![Optuna](https://img.shields.io/badge/Optuna-Hyperparameter_Tuning-6B4FBB)](https://optuna.org/)
 
 </div>
-
-<p align="center">
-  <strong>Daily AP на публичном тесте: <span style="color:#00C853">0.70791</span></strong>
-</p>
 
 ---
 
 ## О задаче
 
-Есть поток обращений, которые попадают в обработку операторам или партнерам. Для каждого обращения нужно заранее оценить вероятность успешного целевого действия в ближайшие 5 дней после назначения.
+Поток обращений назначается операторам и партнёрам. Для каждого обращения нужно заранее оценить вероятность успешного целевого действия в ближайшие 5 дней после назначения — score используется для ранжирования внутри дня, более перспективные обращения должны получать более высокий score.
 
-Результат модели используется для ранжирования: более перспективные обращения должны получать более высокий score.
+Одна строка в `train.csv`/`test.csv` — это факт назначения обращения в конкретный момент времени, с контекстом (источник, регион, канал), признаками пользователя/продавца/объявления и агрегатами активности за окна `1d`–`90d`. `events.csv` даёт более гранулярную историю событий для собственного feature engineering.
 
-**Основная метрика** — **Daily Average Precision** (усредненный AP по дням назначения): 
+**Метрика: Daily Average Precision** — AP считается отдельно для каждой даты назначения, затем усредняется по дням.
 
-Пусть D - множество дат назначения обращений в скрытой тестовой выборке. Для каждой даты считаем Average Precision только по обращениям, назначенным в этот день:
-$$AP_{d} = AP({(y_i, s_i): assignment date_i = d})$$
-
-Итоговая метрика - среднее значение по дням:
-$$DailyAP = \frac{1}{|D|}\sum_{d \in D}AP_d$$
-
+**Ограничения:** без LLM >1B параметров и внешних API, без ручной разметки теста, без хардкода под `lead_id`; open-source библиотеки допускаются при раскрытии в описании.
 
 ---
 
-## Что сделано
+## Результат
 
-- **Feature Engineering** из `events.csv` с жёстким временным фильтром `event_ts < assignment_ts` (без утечки)
-- Многооконные счётчики событий (12h, 1d, 3d, 7d, 14d, 30d)
-- Recency по каждому типу событи
-- Price статистики и price delta
-- Last context (`last_ctx_seq`, `last_src_slot`)
-- Feature selection по важности (CatBoost importance ≥ 0.05)
-- Time-based expanding window CV (4 фолда)
-- Ансамбль: **CatBoost + LightGBM + XGBoost** с равными весами
-- Подбор гиперпараметров через **Optuna** (100 trials) с `MedianPruner`
-- Финальный бленд с несколькими `random_state`
+| | |
+|---|---:|
+| CV Daily AP (4 фолда, time-based) | **0.6690 ± 0.0374** |
+| Public Daily AP | **0.708** |
+| Public Average Precision | 0.710 |
 
-**Библиотеки**: `pandas`, `catboost`, `lightgbm`, `xgboost`, `optuna` — все open-source, локально.
+Локальная кросс-валидация откалибрована реалистично: разброс между CV и public-скором на разных прогонах укладывается в одно стандартное отклонение CV — то есть оценка не переобучена под шум конкретных 4 фолдов.
 
 ---
 
-## Результаты
-
-| Этап                        | CV Daily AP       | Public Daily AP |
-|----------------------------|-------------------|-----------------|
-| Базовая версия             | ~0.634            | 0.662           |
-| + улучшенные FE            | 0.649             | 0.6687          |
-| + Optuna + feature select  | **0.669**         | **0.70791**     |
-
----
-
-## Структура решения
+## Пайплайн
 
 ```text
-solution/
-├── solution.ipynb          - основной ноутбук
-├── submission.csv          - финальный файл
+train.csv / test.csv / events.csv
+        │
+        ▼
+   1. EDA ─────────────────────────► стабильность target rate, сила категориальных
+        │                             признаков, пересечение train/test, природа пропусков
+        ▼
+   2. Feature engineering ─────────► агрегаты из events.csv (окна, recency, last_ctx_seq/
+        │                             last_src_slot) + бизнес-фичи (ratio, trend, interaction)
+        ▼
+   3. Отбор признаков ─────────────► 214 → 171, порог по CatBoost feature importance
+        │
+        ▼
+   4. Валидация ───────────────────► TimeSeriesSplit по датам (4 фолда, expanding window),
+        │                             метрика — Daily Average Precision (не обычный AP)
+        ▼
+   5. Модель-ансамбль ─────────────► CatBoost + LightGBM + XGBoost, равное усреднение,
+        │                             несколько seed'ов (бэггинг)
+        ▼
+   6. Подбор гиперпараметров ──────► Optuna + MedianPruner, objective — средний Daily AP
+        │                             по фолдам с ранней остановкой неудачных trial'ов
+        ▼
+   7. Финальная модель ────────────► обучение на всём train, предсказание на test
+        │
+        ▼
+   submission.csv (lead_id, score)
+```
+
+---
+
+## 1. EDA
+
+Перед построением признаков проверил четыре вещи:
+
+- **Target rate по дням** — колеблется в районе 0.19–0.25 без явного тренда, можно валидироваться по времени без риска систематического сдвига.
+- **Сила категориальных признаков** — `lead_source` и `call_center` дают заметную разницу в target rate между уровнями, `region`/`user_tenure_bucket`/`price_bucket` — почти нет сигнала.
+- **Пересечение train/test** — `user_id` не пересекаются, test строго позже train по датам → валидация по времени обязательна, а не опция.
+- **Природа пропусков** — гипотезу "пропуск связан с новизной пользователя" проверил тремя способами (тест Манна-Уитни на `user_age_days`, корреляция масок пропусков между колонками, пересечение "пропуск" и "нет событий в events.csv"). Все три теста говорят об одном: пропуски случайны (MCAR), не системны. Поэтому не создавал искусственные флаги вроде `is_new_user` — CatBoost/LightGBM/XGBoost получают NaN как есть.
+
+---
+
+## 2. Feature engineering
+
+### Признаки из `events.csv`
+
+Обязательное правило: `event_ts < assignment_ts` перед любой агрегацией — иначе прямая утечка целевого сигнала.
+
+- счётчики событий по типам и окнам `12h/1d/3d/7d/14d/30d`;
+- recency — часы с последнего события каждого типа;
+- статистики цены (`ev_price_mean/std/min/max`) по событиям;
+- `last_ctx_seq`/`last_src_slot` — контекст **последнего** события перед назначением (не просто счётчик уникальных значений). Проверил на CV: даёт +0.02 к Daily AP, стабильно на всех 4 фолдах — самая существенная отдельная находка за всю разработку;
+- разнообразие контекста (`ctx_nunique`, `ctx_mode`, `slot_mode` и доли).
+
+### Бизнес-признаки
+
+Отношения и взаимодействия поверх готовых табличных агрегатов: активность и вовлечённость пользователя, конверсия предыдущих назначений (`prior_success_ratio_30d`, `prior_answer_ratio_30d`), качество и активность продавца, цена относительно пробега/возраста авто, тренды активности между короткими и длинными окнами (`views_trend_1d_to_7d` и т.п.), интеракции признаков.
+
+### Отбор признаков
+
+214 признаков на 13.7k строк — избыточно относительно объёма данных. Один быстрый CatBoost на всех признаках → `get_feature_importance()` → отсечение нижнего хвоста. Порог 0.05 подобран перебором на CV (пробовал 0.02/0.05/0.1 — 0.05 дал лучший результат):
+
+| Признаков всего | Порог важности | Осталось | CV Daily AP |
+|---:|:---:|---:|---:|
+| 214 | — | 214 | 0.6607 |
+| 214 | ≥ 0.05 | **171** | **0.6650** |
+| 214 | ≥ 0.10 | 153 | 0.6623 |
+
+---
+
+## 3. Валидация
+
+Целевая метрика на платформе — Daily Average Precision, не обычный AP, поэтому реализована явно:
+
+```python
+def daily_average_precision(y_true, y_score, dates):
+    frame = pd.DataFrame({"y": y_true, "score": y_score, "date": dates})
+    scores = []
+    for _, group in frame.groupby("date"):
+        if group["y"].sum() == 0:
+            continue
+        scores.append(average_precision_score(group["y"], group["score"]))
+    return np.mean(scores)
+```
+
+Кросс-валидация — `TimeSeriesSplit` по уникальным датам назначения (4 фолда, expanding window: train растёт, validation — следующий блок дат). Это честнее одного фиксированного holdout-сплита и ближе к реальному сценарию (test тоже строго позже train).
+
+---
+
+## 4. Модель и ансамбль
+
+**CatBoost + LightGBM + XGBoost**, равное усреднение прогнозов, несколько seed'ов на модель (бэггинг для снижения дисперсии).
+
+Что проверено и осознанно **не включено** в ансамбль:
+
+| Идея | Результат проверки |
+|---|---|
+| CatBoostRanker (YetiRank) как отдельная модель | ~0.52 Daily AP отдельно — заметно хуже классификации; в блендинге тоже не помогает |
+| RandomForest / LogisticRegression в ансамбле | Не тестировались как отдельный вклад — по характеру задачи (много инженерных агрегатов) ожидаемо слабее бустинга |
+| Подбор весов блендинга вместо равного среднего | Не даёт прироста — равное среднее уже около оптимума на переборе (0.3/0.5/0.7) |
+| Ещё одна модель того же семейства (2-е дерево на Logloss) | Прирост в пределах шума CV — модели одного семейства слишком скоррелированы |
+
+---
+
+## 5. Подбор гиперпараметров
+
+Optuna с `MedianPruner`: objective — средний Daily AP по 4 фолдам кросс-валидации, с `trial.report`/`trial.should_prune()` после каждого фолда — неудачные trial'ы обрываются раньше, не тратя время на все фолды.
+
+Лучшие параметры:
+
+```text
+iterations=841, learning_rate=0.0572, depth=4
+CatBoost: l2_leaf_reg=24.68, max_ctr_complexity=4
+LightGBM: num_leaves=29, min_child_samples=81
+XGBoost:  reg_lambda=0.808, min_child_weight=2, scale_pos_weight=1.38
+```
+
+---
+
+## Что ещё пробовали и отклонили
+
+- **Target encoding по `user_id`** — бесполезен: `user_id` встречается в train/test ровно по одному разу, признак получался почти из одних пропусков.
+- **Momentum-фичи (`7d/30d` ratio), окно 90d, answer/positive rate ratios** — прирост в третьем знаке, не устойчив на CV.
+- **`max_ctr_complexity`** в CatBoost — небольшой, но воспроизводимый плюс, включён в финальный поиск.
+
+---
+
+## Использованные библиотеки
+
+CatBoost, LightGBM, XGBoost, Optuna, scikit-learn, pandas, NumPy — все open-source, разворачиваются локально, без обращения к внешним API. LLM не используются: в датасете нет текстовых полей, для которых языковая модель дала бы естественное преимущество перед табличными признаками.
+
+---
+
+## Воспроизводимость
+
+- `RANDOM_STATE = 42` зафиксирован везде, где есть случайность в подборе гиперпараметров;
+- финальный ансамбль использует несколько фиксированных seed'ов (`[42, 43, 44]`) — не случайных при каждом запуске, результат воспроизводим;
+- ноутбук выполняется последовательно сверху вниз на выданных `data/train.csv`, `data/test.csv`, `data/events.csv` и производит `submission.csv` в требуемом формате (`lead_id`, `score`).
+
+---
+
+## Структура
+
+```text
+.
 ├── data/
 │   ├── train.csv
 │   ├── test.csv
 │   └── events.csv
+├── solution.ipynb
+├── submission.csv
 └── README.md
+```
+
+---
+
+## Запуск
+
+```bash
+pip install pandas numpy scikit-learn catboost lightgbm xgboost optuna matplotlib seaborn scipy
+jupyter nbconvert --to notebook --execute --inplace solution.ipynb
+```
+
+Раздел с подбором гиперпараметров (`Optuna`, `n_trials=40`, 3 модели × 4 фолда за каждый trial) — самая тяжёлая часть по времени; для быстрой проверки пайплайна можно временно уменьшить `n_trials`.
