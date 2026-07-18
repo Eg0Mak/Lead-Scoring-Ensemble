@@ -214,14 +214,3 @@ Objective-функция Optuna использует ту же схему кро
 ├── submission.csv
 └── README.md
 ```
-
----
-
-## 10. Запуск
-
-```bash
-pip install pandas numpy scikit-learn catboost lightgbm xgboost optuna matplotlib seaborn scipy
-jupyter nbconvert --to notebook --execute --inplace solution.ipynb
-```
-
-Этап подбора гиперпараметров (Optuna, 100 trial'ов, 3 модели × 4 фолда на каждый trial) занимает основное время выполнения.
