@@ -1,2 +1,5 @@
 .venv/
 .DS_Store
+catboost_info/
+*.catboost
+catboost_model/
