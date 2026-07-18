@@ -24,9 +24,14 @@
 
 **Метрика — Daily Average Precision.** AP вычисляется отдельно для каждой даты назначения, итоговое значение — среднее по дням:
 
-$$AP = \frac{1}{N_+}\sum_{k=1}^N Precision@k \cdot y_{(k)}, \qquad Precision@k = \frac{\sum_{j=1}^k y_{(j)}}{k}$$
+$$AP = \frac{1}{N_+}\sum_{k=1}^NPrecision@k ** y_{(k)}$$
 
-$$AP_{d} = AP\big(\{(y_i, s_i): \text{assignment\_date}_i = d\}\big), \qquad DailyAP = \frac{1}{|D|}\sum_{d \in D} AP_d$$
+$$Precision@k = \frac{\sum_{j=1}^k y_{(i)}}{k}$$​​$$N_+ = \sum_{i=1}^Ny_i$$
+
+$$AP_{d} = AP({(y_i, s_i): assignment date_i = d})$$
+
+$$DailyAP = \frac{1}{|D|}\sum_{d \in D}AP_d$$
+
 
 **Ограничения задачи:** запрещено использование LLM с числом параметров свыше 1B и обращение к внешним API; запрещена ручная разметка тестовых данных; запрещен хардкод под конкретные `lead_id`. Использование open-source библиотек допускается при условии их раскрытия в описании решения.
 
