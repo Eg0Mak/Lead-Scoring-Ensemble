@@ -229,4 +229,4 @@ pip install pandas numpy scikit-learn catboost lightgbm xgboost optuna matplotli
 jupyter nbconvert --to notebook --execute --inplace solution.ipynb
 ```
 
-Этап подбора гиперпараметров (Optuna, 150 trial'ов, 3 модели × 4 фолда на каждый trial, однопоточное исполнение) занимает основное время выполнения.
+Этап подбора гиперпараметров (Optuna, 100 trial'ов, 3 модели × 4 фолда на каждый trial, однопоточное исполнение) занимает основное время выполнения.
