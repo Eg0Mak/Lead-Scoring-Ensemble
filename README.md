@@ -209,6 +209,7 @@ Objective-функция Optuna использует ту же схему кро
 │   ├── train.csv
 │   ├── test.csv
 │   └── events.csv
+├── .gitignore
 ├── solution.ipynb
 ├── submission.csv
 └── README.md
