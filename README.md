@@ -201,16 +201,31 @@ Objective-функция Optuna использует ту же схему кро
 
 ---
 
-## 9. Структура репозитория
+## 9. Арихитектура проекта
 
 ```text
-.
+Lead-Scoring-Ensemble/
+│
+├── src/
+│   ├── main.py          # FastAPI + все эндпоинты
+│   ├── predictor.py     # загрузка модели и predict()
+│   ├── schemas.py       # Pydantic-модели
+│   └── config.py        # настройки/пути
+│
+├── model/
+│   └── ensemble_model.joblib
+│
 ├── data/
-│   ├── train.csv
-│   ├── test.csv
-│   └── events.csv
-├── .gitignore
-├── solution.ipynb
-├── submission.csv
-└── README.md
+├── notebooks/
+│   └── solution.ipynb
+│
+├── tests/
+│   └── test_api.py
+│
+├── Dockerfile
+├── docker-compose.yml
+├── requirements.txt
+├── README.md
+├── .dockerignore
+└── .gitignore
 ```
