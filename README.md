@@ -4,7 +4,7 @@
 
 ### Ранжирование лидов по вероятности успешного целевого действия
 
-**Тестовое задание Avito: скоринг обращений для операторов и партнеров**
+**Скоринг обращений для операторов и партнеров**
 
 [![Python](https://img.shields.io/badge/Python-3.12-3776AB?logo=python&logoColor=white)](https://www.python.org/)
 [![CatBoost](https://img.shields.io/badge/CatBoost-Gradient_Boosting-FFCC00)](https://catboost.ai/)
