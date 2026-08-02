@@ -1,0 +1,11 @@
+services:
+  lead-scoring-api:
+    build: .
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./model:/app/model
+      - ./data:/app/data
+    environment:
+      - EVENTS_PATH=/app/data/events.csv
+    restart: unless-stopped

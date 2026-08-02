@@ -28,8 +28,21 @@ def predict(df: pd.DataFrame):
         if col not in df.columns:
             df[col] = "missing" if col in cat_features else 0
 
+    # категориальные
     for col in cat_features:
         if col in df.columns:
-            df[col] = df[col].fillna("missing").astype(str).astype("category")
+            df[col] = (
+                df[col]
+                .fillna("missing")
+                .astype(str)
+                .astype("category")
+            )
+
+    # числовые
+    numeric_cols = [c for c in feature_cols if c not in cat_features]
+
+    for col in numeric_cols:
+        if col in df.columns:
+            df[col] = pd.to_numeric(df[col], errors="coerce")
 
     return model.predict_proba(df[feature_cols])
