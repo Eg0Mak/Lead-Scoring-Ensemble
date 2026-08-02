@@ -3,3 +3,4 @@
 catboost_info/
 *.catboost
 catboost_model/
+__pycache__
