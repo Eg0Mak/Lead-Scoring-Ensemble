@@ -5,6 +5,7 @@ anyio==4.14.2
 appnope==0.1.4
 asttokens==3.0.2
 catboost==1.2.10
+certifi==2026.7.22
 click==8.4.2
 colorlog==6.10.1
 comm==0.2.3
@@ -17,8 +18,11 @@ fastapi==0.141.1
 fonttools==4.63.0
 graphviz==0.21
 h11==0.16.0
+httpcore==1.0.9
 httptools==0.8.0
+httpx==0.28.1
 idna==3.18
+iniconfig==2.3.0
 ipykernel==7.3.0
 ipython==9.15.0
 ipython_pygments_lexers==1.1.1
@@ -43,6 +47,7 @@ pexpect==4.9.0
 pillow==12.3.0
 platformdirs==4.10.0
 plotly==6.9.0
+pluggy==1.6.0
 prompt_toolkit==3.0.52
 psutil==7.2.2
 ptyprocess==0.7.0
@@ -51,6 +56,7 @@ pydantic==2.13.4
 pydantic_core==2.46.4
 Pygments==2.20.0
 pyparsing==3.3.2
+pytest==9.1.1
 python-dateutil==2.9.0.post0
 python-dotenv==1.2.2
 PyYAML==6.0.3
